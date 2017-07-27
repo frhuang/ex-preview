@@ -1,5 +1,5 @@
 <template>
-  <div class="hhhhh">
+  <div ref="hello">
   </div>
 </template>
 <style>
@@ -69,7 +69,8 @@ export default {
     init () {
       const PhotoSwipe = Vue.extend(PhotoSwipeComponent)
       let $vm = new PhotoSwipe({ el: document.createElement('div') })
-      document.body.appendChild($vm.$el)
+      console.log(this.$refs["hello"])
+      this.$refs["hello"].appendChild($vm.$el)
       $vm.init(0, this.images)
       // this.$photoswipe.init(this.images)
     }

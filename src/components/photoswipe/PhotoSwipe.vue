@@ -96,6 +96,9 @@ export default {
       this.photoswipe = new PhotoSwipe(this.$el, PhotoSwipeDefaultUI, items, options)
       this.photoswipe.init()
     }
+  },
+  beforeDestroy () {
+    this.photoswipe.close();
   }
 }
 </script>

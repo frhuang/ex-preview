@@ -22,7 +22,7 @@
         width: 100%;
         height: 100%;
         display: none;
-        &.active {
+        &.is-active {
           display: block;
           transform: none;
         }
@@ -32,8 +32,14 @@
 </style>
 
 <script>
-import { once, addClass, removeClass } from '@/components/utils'
+import { once, addClass, removeClass } from './utils'
 export default {
+  props: {
+    loop: {
+      type: Boolean,
+      default: false
+    }
+  },
   created () {
     this.dragState = {}
   },
@@ -49,12 +55,33 @@ export default {
       reInitTimer: null,
       noDrag: false,
       isDone: false,
-      speed: 300,
+      speed: 200,
       noDragWhenSingle: true,
       defaultIndex: 0
     }
   },
+  watch: {
+    index (newIndex) {
+      this.$emit('change', newIndex)
+    }
+  },
+  mounted () {
+    this.ready = true
+    this.initPages();
+    var element = this.$el;
+    element.addEventListener('touchstart', this.touchStart);
+    element.addEventListener('touchmove', this.touchMove);
+    element.addEventListener('touchend', this.touchEnd);
+  },
   methods: {
+    swipeItemCreated () {
+      if (!this.ready) return
+      this.initPages();
+    },
+    swipeItemDestroyed () {
+      if (!this.ready) return;
+      this.initPages();
+    },
     initPages () {
       var children = this.$children;
       this.noDrag = children.length === 1 && this.noDragWhenSingle;
@@ -62,7 +89,6 @@ export default {
       var intDefaultIndex = Math.floor(this.defaultIndex)
       var defaultIndex = (intDefaultIndex >= 0 && intDefaultIndex < children.length) ? intDefaultIndex : 0;
       this.index = defaultIndex;
-
       children.forEach((child, index) => {
         pages.push(child.$el);
         removeClass(child.$el, 'is-active');
@@ -70,16 +96,13 @@ export default {
           addClass(child.$el, 'is-active')
         }
       });
-
       this.pages = pages
     },
     translate (element, offset, speed, callback) {
       if (speed) {
         this.animating = true;
         element.style.webkitTransition = '-webkit-transform ' + speed + 'ms ease'
-        setTimeout(() => {
-          element.style.webkitTransform = `translate3d(${offset}px, 0, 0)`;
-        }, 50);
+        element.style.webkitTransform = `translate3d(${offset}px, 0, 0)`;
 
         var called = false;
         var transitionEndCallback = () => {
@@ -93,9 +116,9 @@ export default {
           }
         };
         once(element, 'webkitTransitionEnd', transitionEndCallback);
-        setTimeout(transitionEndCallback, speed + 100);
+        // setTimeout(transitionEndCallback, speed + 100);
       } else {
-        element.style.webkitTransition = '';
+        // element.style.webkitTransition = '';
         element.style.webkitTransform = `translate3d(${offset}px, 0, 0)`;
       }
     },
@@ -104,17 +127,16 @@ export default {
       if (!options && this.$children.length < 2) return;
 
       var prevPage, nextPage, currentPage, pageWidth, offsetLeft;
-      var speed = this.speed || 300;
+      var speed = this.speed || 200;
       var index = this.index;
       var pages = this.pages;
       var pageCount = pages.length;
-
       if (!options) {
         pageWidth = this.$el.clientWidth;
         currentPage = pages[index];
         prevPage = pages[index - 1];
         nextPage = pages[index + 1];
-        if (this.continuous && pages.length > 1) {
+        if (this.loop && pages.length > 1) {
           if (!prevPage) {
             prevPage = pages[pages.length - 1];
           }
@@ -146,19 +168,17 @@ export default {
       if (towards === 'prev') {
         if (index > 0) {
           newIndex = index - 1;
-        }
-        if (this.continuous && index === 0) {
+        }else if (index === 0) {
           newIndex = pageCount - 1;
         }
       } else if (towards === 'next') {
         if (index < pageCount - 1) {
           newIndex = index + 1;
         }
-        if (this.continuous && index === pageCount - 1) {
+        if (this.loop && index === pageCount - 1) {
           newIndex = 0;
         }
       }
-
       var callback = () => {
         if (newIndex !== undefined) {
           var newPage = this.$children[newIndex].$el;
@@ -227,6 +247,7 @@ export default {
       this.$emit('end', this.index);
     },
     touchStart (evt) {
+      event.preventDefault();
       if (this.animating) return;
       this.dragging = true;
       this.userScrolling = false;
@@ -240,13 +261,13 @@ export default {
       dragState.startTop = touch.pageY;
       dragState.startTopAbsolute = touch.clientY;
       dragState.pageWidth = element.offsetWidth;
-      dragState.pageWidth = element.offsetHeight;
+      dragState.pageHeight = element.offsetHeight;
 
       var prevPage = this.$children[this.index - 1];
       var dragPage = this.$children[this.index];
       var nextPage = this.$children[this.index + 1];
 
-      if (this.continuous && this.pages.length - 1) {
+      if (this.loop && this.pages.length - 1) {
         if (!prevPage) {
           prevPage = this.$children[this.$children.length - 1];
         }
@@ -308,15 +329,50 @@ export default {
         return;
       }
       if (!this.dragging) return;
+      if (this.noDrag) return;
+      var dragState = this.dragState;
+      var dragDuration = new Date() - dragState.startTIme;
+      var towards = null;
+      var offsetLeft = dragState.currentLeft - dragState.startLeft;
+      var offsetTop = dragState.currentTop - dragState.startTop;
+      var pageWidth = dragState.pageWidth;
+      var index = this.index;
+      var pageCount = this.pages.length;
+      if (dragDuration < 300) {
+        let fireTap = Math.abs(offsetLeft) < 5 && isNan(offsetTop) < 5;
+        if (isNaN(offsetTop) || isNaN(offsetLeft)) {
+          fireTap = true;
+        } 
+        if (fireTap) {
+          this.$children[this.index].$emit('tap');
+        }
+      }
+      if (dragDuration < 300 && dragState.currentLeft === undefined) return;
+
+      if (dragDuration < 300 || Math.abs(offsetLeft) > pageWidth / 2) {
+        towards = offsetLeft < 0 ? 'next' : 'prev';
+      }
+      
+      if (!this.loop) {
+        if ((index === 0 && towards === 'prev') || (index === pageCount - 1 && towards === 'next')) {
+          towards = null;
+        }
+      }
+
+      if (this.$children.length < 2) {
+        towards = null;
+      }
+      this.doAnimate(towards, {
+        offsetLeft: offsetLeft,
+        pageWidth: dragState.pageWidth,
+        prevPage: dragState.prevPage,
+        currentPage: dragState.dragPage,
+        nextPage: dragState.nextPage
+      });
+      this.dragState = {};
       this.dragging = false;
     }
-  },
-  mounted () {
-    this.ready = true
-    var element = this.$el;
-    element.addEventListener('touchstart', this.touchStart);
-    element.addEventListener('touchmove', this.touchMove);
-    element.addEventListener('touchend', this.touchEnd);
   }
 }
 </script>
+ 

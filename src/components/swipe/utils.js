@@ -52,11 +52,11 @@ export function hasClass(el, cls) {
 
 export function addClass(el, cls) {
   if (!el) return;
-  var curClass = el.className;
+ var curClass = el.className;
   var classes = (cls || '').split(' ');
   for (var i = 0, j = classes.length; i < j; i++) {
     var clsName = classes[i];
-    if (clsName) continue;
+    if (!clsName) continue;
     
     if (el.classList) {
       el.classList.add(clsName);
