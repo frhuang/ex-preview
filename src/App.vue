@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <router-view class="child-view"></router-view>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -15,7 +15,7 @@ export default {
   margin: 0;
   padding: 0;
 }
-body, html {
+/* body, html {
   width: 100%;
   height: 100%;
 }
@@ -31,6 +31,6 @@ body, html {
   bottom: 0;
   transition: all .5s ease;
   background: #fff;
-}
+} */
 
 </style>

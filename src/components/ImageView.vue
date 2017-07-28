@@ -371,15 +371,23 @@ export default {
   <div class="v-pviewer-wrap" ref="wrap">
     <slot></slot>
     <transition name="v-pviewer">
-      <div class="v-pviewer-box" ref="box" v-show="show" @touchstart="tstart" @touchmove.prevent="tmove" @touchend="tend" @click="clicked">
-        <slot name="header">
+      <div class="v-pviewer-box" ref="box" 
+        v-show="show" 
+        @touchstart="tstart" 
+        @touchmove.prevent="tmove"
+        @touchend="tend" 
+        @click="clicked">
+        <!-- <slot name="header">
           <div class="v-pviewer-header" v-show="!zoom">
             <span class="v-pviewer-index">
               <a>{{activeIndex+1}}</a>/{{count}}</span>
           </div>
-        </slot>
+        </slot> -->
         <ul class="v-pviewer-list" ref="list">
-          <li class="v-pviewer-slider" v-for="(item,$index) in imgList" :style="{'transform':'translate3d(' + (boxWidth)*$index + 'px,0,0)'}">
+          <li class="v-pviewer-slider" 
+            v-for="(item,$index) in imgList" 
+            :key="$index"
+            :style="{'transform':'translate3d(' + (boxWidth)*$index + 'px,0,0)'}">
             <div class="v-pviewer-zoom">
               <img class="v-pviewer-img" :src="item.img" :alt="item.title">
             </div>

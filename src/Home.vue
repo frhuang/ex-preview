@@ -1,25 +1,23 @@
 <template>
-  <div>
-    <image-view 
-      :list="list" 
-      v-model="showViewer" 
-      @zoom="zoom" 
-      @slide-end="slide" 
-      @slide-next="slide" 
-      @slide-pre="slide">
-    </image-view>
+  <div class="home">
+    <viewer :imagelist="imagelist">
+    </viewer>
   </div>
 </template>
 
 <script>
-import ImageView from './components/ImageView'
+import Viewer from './viewer/Viewer'
 export default {
   data() {
     return {
       showViewer: true,
-      list: [
-        { img: "/static/img/1.jpg" },
-        { img: "/static/img/1.jpg" }
+      imagelist: [
+        '/static/img/1.jpg',
+        '/static/img/2.jpg',
+        '/static/img/test.png',
+        'https://gpic.qpic.cn/gbar_pic/2aqluyraXicEfqicaK3aV4iaib5icib78qF0eFxokIEKSewIg8hQW0kiavCQg/1000',
+        'https://gpic.qpic.cn/gbar_pic/lDVAjxOVicMnyU4OWLShicffM3TvZYFia4ywL0B5oC3BLPDCoIkgdkJLA/0',
+        'https://gpic.qpic.cn/gbar_pic/2aqluyraXicEfqicaK3aV4ia3YQE3mKcibH02jibympJ4gzCUEjk2Iz5BwQ/1000',
       ]
     }
   },
@@ -32,7 +30,7 @@ export default {
     }
   },
   components: {
-    ImageView
+    Viewer
   }
 }
 </script>
