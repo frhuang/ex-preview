@@ -1,5 +1,5 @@
 <template>
-    <img :src="lazySrc" alt="" @load="onImgLoad">
+    <img :src="curImg" ref="img" class="loading-img">
     <!-- <div ></div>
     <div class="spinner">
       <div class="double-bounce1"></div>
@@ -19,29 +19,50 @@ export default {
       loading: true,
       error: false,
       loaded: false,
-      preloadNum: 3,
-      currentIndex: this.current
+      preloadNum: 1,
+      currentIndex: this.current,
+      curImg: "/static/img/spinner.svg"
+    }
+  },
+  created () {
+    // this.loadImg();
+    console.log(this.current, this.index)
+    
+    var maxNum = this.current + this.preloadNum
+    var minNum = this.current - this.preloadNum
+    if (this.index <= maxNum && this.index >= minNum) {
+      this.loadImg();
+    }
+  },
+  watch: {
+    current (val) {
+      var maxNum = val + this.preloadNum
+      var minNum = val - this.preloadNum
+      if (this.index <= maxNum && this.index >= minNum) {
+        this.loadImg()
+      }
     }
   },
   methods: {
     loadImg () {
-      var maxNum = this.currentIndex + this.preloadNum
-      var minNum = this.currentIndex - this.preloadNum
-      if (this.lazySrc && this.index <= maxNum && this.index >= minNum ) {
+      
+      this.curImg = this.lazySrc;
+      // if (this.lazySrc && this.index <= maxNum && this.index >= minNum ) {
         let img = new Image()
         img.src = this.lazySrc
         img.onload = () => {
           this.loading = false
+          this.onImgLoad();
         }
         img.onerror = () => {
           this.loading = false
           this.error = true
         }
-      }
+      // }
     },
     onImgLoad (e) {
       this.loaded = true
-      const target = e.target,
+      const target = this.$refs['img'],
         h = target.naturalHeight,
         w = target.naturalWidth,
         r = h / w,
@@ -72,3 +93,6 @@ export default {
 }
 </script>
 
+<style lang="scss" scoped>
+
+</style>

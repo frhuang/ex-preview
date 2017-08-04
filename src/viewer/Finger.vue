@@ -1,10 +1,11 @@
 <template>
   <div class="finger" 
     @touchstart="_handleTouchStart"
-    @touchmove="_handleTouchMove"
+    @touchmove.prevent="_handleTouchMove"
     @touchend="_handleTouchEnd"
     @touchcancel="_handleTouchCancel">
     <slot></slot>
+    <!-- <p style="position: fixed; left: 0;top:0 ;color: #fff;">{{msg}}</p> -->
   </div>
 </template>
 
@@ -21,7 +22,6 @@ export default {
     rotate: Function,
     multipointStart: Function,
     multipointEnd: Function,
-
   },
   data () {
     return {
@@ -48,18 +48,17 @@ export default {
       preTapPosition: {
         x: null,
         y: null
-      }
+      },
+      msg: ""
     }
   },
   methods: {
     getLen (v) {
       return Math.sqrt(v.x * v.x + v.y * v.y);
     },
-
     dot (v1, v2) {
       return v1.x * v2.x + v1.y * v2.y;
     },
-
     getAngle (v1, v2) {
       var mr = this.getLen(v1) * this.getLen(v2);
       if (mr === 0) return mr;
@@ -67,24 +66,22 @@ export default {
       if (r > 1) r = 1;
       return Math.acos(r);
     },
-
     cross (v1, v2) {
       return v1.x * v2.y - v2.x * v1.y;
     },
-
     _resetState () {
       // this.x = null;
       // this.y = null;
       // this.swiping = false;
       // this.start = 0;
     },
-
     _emitEvent (name, ...arg) {
+      // console.log(name)
+      this.msg = name
       if (this[name]) {
         this[name](...arg);
       }
     },
-
     _handleTouchStart (evt) {
       if (!evt.touches) return;
       this.now = Date.now();
@@ -92,7 +89,7 @@ export default {
       this.y1 = evt.touches[0].pageY;
       this.delta = this.now - (this.last || this.now);
       if (this.preTapPosition.x != null) {
-        this.isDoubleTap = (this.delta > 0 && this.delta < 250 && Math.abs(this.preTapPosition.x - this.x1) < 30 && Math.abs(this.preTapPosition.y - this.y1) < 30)
+        this.isDoubleTap = (this.delta > 0 && this.delta <= 250 && Math.abs(this.preTapPosition.x - this.x1) < 30 && Math.abs(this.preTapPosition.y - this.y1) < 30)
       }
       this.preTapPosition.x = this.x1;
       this.preTapPosition.y = this.y1;
@@ -103,21 +100,15 @@ export default {
       if (len > 1) {
         this._cancelLongTap();
         this._cancelSingleTap();
-        var v = {
-          x: evt.touches[1].pageX - this.x1,
-          y: evt.touches[1].pageY - this.y1
-        }
-        preV.x = v.x
-        preV.y = v.y
+        preV.x = evt.touches[1].pageX - this.x1
+        preV.y = evt.touches[1].pageY - this.y1
         this.pinchStartLen = this.getLen(preV);
         this._emitEvent('multipointStart', evt);
       }
-
       this.longTapTimeout = setTimeout(() => {
         this._emitEvent('longTap', evt);
       }, 750);
     },
-
     _handleTouchMove (evt) {
       var preV = this.preV,
           len = evt.touches.length,
@@ -125,23 +116,25 @@ export default {
           currentY = evt.touches[0].pageY;
       
       this.isDoubleTap = false;
+      this.msg = len
       if (len > 1) {
+        this._cancelLongTap();
         var v = {
-          x: evt.touches[0].pageX + currentX,
-          y: evt.touches[0].pageY + currentY
+          x: evt.touches[1].pageX - currentX,
+          y: evt.touches[1].pageY - currentY
         }
-
         if (preV.x != null) {
           if (this.pinchStartLen > 0) {
             evt.center = {
               x: (evt.touches[1].pageX + currentX) / 2,
               y: (evt.touches[1].pageY + currentY) / 2
             };
-            evt.scale = this.getLen(v) / this.pinchStartLen;
+            
+            // var s = this.getLen(v) / this.pinchStartLen;
             this._emitEvent('pinch', evt);
           }
-          evt.angle = this.getRotateAngle(v, preV);
-          this._emitEvent('rotate', evt);
+          // evt.angle = this.getRotateAngle(v, preV);
+          // this._emitEvent('rotate', evt);
         } 
         
         preV.x = v.x;
@@ -164,15 +157,12 @@ export default {
         evt.preventDefault();
       }
     },
-
     _handleTouchEnd (evt) {
       this.end = Date.now();
       this._cancelLongTap();
-
       if (evt.touches.length < 2) {
         this._emitEvent('multipointEnd', evt);
       }
-
       evt.origin = [this.x1, this.y1];
       if (this.multiTouch === false) {
         if ((this.x2 && Math.abs(this.x1 - this.x2) > 30) ||
@@ -197,7 +187,6 @@ export default {
           }, 0)
         }
       }
-
       this.preV.x = 0;
       this.preV.y = 0;
       this.scale = 1;
@@ -212,15 +201,12 @@ export default {
       clearInterval(this.longTapTimeout);
       clearInterval(this.swipeTimeout);
     },
-
     _cancelLongTap () {
       clearTimeout(this.longTapTimeout);
     },
-
     _cancelSingleTap () {
       clearTimeout(this.singleTapTimeout)
     },
-
     _swipeDirection (x1, x2, y1, y2) {
       if (Math.abs(x1 - x2) > 80 || this.end -this.now <= 250) {
         return Math.abs(x1 - x2) >= Math.abs(y1 - y2) ? (x1 - x2 > 0 ? 'Left' : 'Right') : (y1 - y2 > 0 ? 'Up' : 'Down')    
@@ -238,5 +224,3 @@ export default {
   height: 100%;
 }
 </style>
-
-

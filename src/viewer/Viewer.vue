@@ -1,6 +1,6 @@
 <template>
   <div class="imageview">
-    <finger
+        <finger
       :singleTap="singleTap"
       :pressMove="pressMove"
       :swipe="swipe">
@@ -13,20 +13,42 @@
             :pressMove="picPressMove"
             :multipointStart="multipointStart"
             :doubleTap="doubleTap"
+            :multipointEnd="multipointEnd"
             :pinch="pinch">
             <loading-img class="imagelist-item-img" 
             :current="current"
-            :lazySrc="item" 
+            :lazySrc="item"
+            :index="$index" 
             :id="'view'+$index"></loading-img>
           </finger>
         </li>
       </ul>
-    </finger>
+    </finger>    
+    <p style="position: fixed; left: 0;top:0 ;color: #fff;">{{msg}}</p>
+       <!-- <ul ref="imagelist" class="imagelist"
+        v-touch
+        v-pressMove="{methods:pressMove}"
+        v-swipe="{methods:swipe}">
+        <li 
+          v-for="(item, $index) in imagelist"
+          class="imagelist-item" 
+          :style="'margin-right:' + gap + 'px'" :key="'img'+$index"
+            v-pressMove="{methods:picPressMove}"
+            v-multipointStart="{methods:multipointStart}"
+            v-doubleTap="{methods:doubleTap}"
+            v-pinch="{methods:pinch}"
+            v-multipointEnd="{methods:multipointEnd}">
+            <loading-img class="imagelist-item-img" 
+            :current="current"
+            :lazySrc="item" 
+            :id="'view'+$index"></loading-img>
+        </li>
+      </ul>    -->
   </div>
 </template>
 
 <script>
-import Finger from './Finger'
+import Finger from './Finger.vue'
 import LoadingImg from './LoadingImg'
 import Transform from './transform'
 export default {
@@ -53,7 +75,10 @@ export default {
     disablePageNum: {
       type: Number
     },
-    disablePinch: Boolean,
+    disablePinch: {
+      type: Boolean,
+      default: false
+    },
     longTap: Function,
     close: Function,
     changeIndex: Function,
@@ -68,7 +93,8 @@ export default {
       screenWidth: window.innerWidth || window.screen.availWidth,
       screenHeight: window.innerHeight || window.screen.availHeight,
       ob: null,
-      current: 0
+      current: 0,
+      msg: ""
     }
   },
   methods: {
@@ -78,7 +104,6 @@ export default {
 
     pressMove (evt) {
       this.endAnimation();
-
       if (!this.focused) {
         if ((this.current === 0 && evt.deltaX > 0) ||
           (this.current === this.arrLength - 1 && evt.deltaX < 0)) {
@@ -94,7 +119,7 @@ export default {
       const { deltaX, deltaY } = evt;
       const isLongPic = this.ob.getAttribute('long');
       const { scaleX, width } = this.ob;
-      if (this.ob.scaleX <= 1 || evt.touches.length > 1) {
+      if (scaleX <= 1 || evt.touches.length > 1) {
         return;
       }
       if (this.ob && this.checkBoundary(deltaX, deltaY)) {
@@ -109,6 +134,7 @@ export default {
       } else {
         this.focused = false;
       }
+      evt.preventDefault();
     },
 
     swipe (evt) {
@@ -138,12 +164,12 @@ export default {
       const { originX, originY } = this.ob,
         originX2 = evt.center.x - this.screenWidth / 2 - document.body.scrollLeft,
         originY2 = evt.center.y - this.screenHeight / 2 - document.body.scrollTop;
-      
       this.ob.originX = originX2;
       this.ob.originY = originY2;
       this.ob.translateX = this.ob.translateX + (originX2 - originX) * this.ob.scaleX;
       this.ob.translateY = this.ob.translateY + (originY2 - originY) * this.ob.scaleY;
       this.ob.scaleX = this.ob.scaleY = this.initScale * evt.scale;
+      this.msg = evt.scale
     },
 
     rotate (evt) {
@@ -155,7 +181,7 @@ export default {
     },
 
     multipointEnd (evt) {
-      this.changeIndex(this.current);
+      this.changeViewIndex(this.current);
 
       if (!this.ob) return;
 
@@ -163,32 +189,10 @@ export default {
 
       const isLongPic = this.ob.getAttribute('long');
       if (this.ob.scaleX < 1) {
-        this.restore(false);
+        this.restore();
       }
-      if (this.ob.scaleX > maxScale && !isLongPic) {
+      if (this.ob.scaleX > this.maxScale && !isLongPic) {
         this.setScale(this.maxScale);
-      }
-
-      let rotation = this.ob.rotateZ % 360,
-        rotate = this.ob.getAttribute('rate');
-
-      if (rotation < 0) {
-        rotation = 360 + rotation;
-      }
-      this.ob.rotateZ = rotation;
-
-      if (rotation > 0 && rotation < 45) {
-        this.ob.rotateZ = 0;
-      } else if (rotation >= 315) {
-        this.ob.rotateZ = 360;
-      } else if (rotation >= 45 && rotation < 135) {
-        this.ob.rotateZ = 90;
-        this.setScale(rate);
-      } else if (rotation >= 135 && rotation < 225) {
-        this.ob.rotateZ = 180;
-      } else if (rotation >= 225 && rotation < 315) {
-        this.ob.rotateZ = 270;
-        this.setScale(rate);
       }
     },
 
@@ -199,13 +203,11 @@ export default {
       const { origin } = evt;
       const originX = origin[0] - this.screenWidth / 2 - document.body.scrollLeft;
       const originY = origin[1] - this.screenHeight / 2 - document.body.scrollTop;
+      
       const isLongPic = this.ob.getAttribute('long');
-
       if (this.ob.scaleX === 1) {
-        if (!isLongPic) {
-          this.ob.translateX = this.ob.originX = originX;
-          this.ob.translateY = this.ob.originY = originY;
-        }
+        !isLongPic && (this.ob.translateX = this.ob.originX = originX);
+        !isLongPic && (this.ob.translateY = this.ob.originY = originY);
         this.setScale(isLongPic ? this.screenWidth / this.ob.width : this.maxScale)
       } else {
         this.ob.translateX = this.ob.originX;
@@ -233,9 +235,8 @@ export default {
       this.ob.scaleX = this.ob.scaleY = size;
     },
 
-    restore (rotate=true) {
+    restore () {
       this.ob.translateX = this.ob.translateY = 0;
-      !!rotate && (this.ob.rotateZ = 0);
       this.ob.scaleX = this.ob.scaleY = 1;
       this.ob.originX = this.ob.originY = 0;
     },
