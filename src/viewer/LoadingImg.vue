@@ -1,10 +1,5 @@
 <template>
-    <img :src="curImg" ref="img" class="loading-img">
-    <!-- <div ></div>
-    <div class="spinner">
-      <div class="double-bounce1"></div>
-      <div class="double-bounce2"></div>
-    </div> -->
+  <img :src="curImg" ref="img">
 </template>
 
 <script>
@@ -14,7 +9,7 @@ export default {
     index: Number,
     current: Number
   },
-  data () {
+  data() {
     return {
       loading: true,
       error: false,
@@ -24,10 +19,7 @@ export default {
       curImg: "/static/img/spinner.svg"
     }
   },
-  created () {
-    // this.loadImg();
-    console.log(this.current, this.index)
-    
+  created() {
     var maxNum = this.current + this.preloadNum
     var minNum = this.current - this.preloadNum
     if (this.index <= maxNum && this.index >= minNum) {
@@ -35,7 +27,7 @@ export default {
     }
   },
   watch: {
-    current (val) {
+    current(val) {
       var maxNum = val + this.preloadNum
       var minNum = val - this.preloadNum
       if (this.index <= maxNum && this.index >= minNum) {
@@ -45,20 +37,17 @@ export default {
   },
   methods: {
     loadImg () {
-      
       this.curImg = this.lazySrc;
-      // if (this.lazySrc && this.index <= maxNum && this.index >= minNum ) {
-        let img = new Image()
-        img.src = this.lazySrc
-        img.onload = () => {
-          this.loading = false
-          this.onImgLoad();
-        }
-        img.onerror = () => {
-          this.loading = false
-          this.error = true
-        }
-      // }
+      let img = new Image()
+      img.src = this.lazySrc
+      img.onload = () => {
+        this.loading = false
+        this.onImgLoad();
+      }
+      img.onerror = () => {
+        this.loading = false
+        this.error = true
+      }
     },
     onImgLoad (e) {
       this.loaded = true
@@ -69,7 +58,7 @@ export default {
         height = window.innerHeight || window.screen.availHeight,
         width = window.innerWidth || window.screen.availWidth,
         rate = height / width;
-      
+
       let imgStyle = {}
       if (r > 3.5) {
         target.setAttribute('long', true);
@@ -87,12 +76,8 @@ export default {
         imgStyle.height = height;
       }
       target.setAttribute('style', `width:${imgStyle.width}; height:${imgStyle.height}; left:${imgStyle.left}; top:${imgStyle.top}`);
-      target.setAttribute('rate', 1/r);
+      target.setAttribute('rate', 1 / r);
     }
   }
 }
 </script>
-
-<style lang="scss" scoped>
-
-</style>

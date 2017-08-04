@@ -5,7 +5,6 @@
     @touchend="_handleTouchEnd"
     @touchcancel="_handleTouchCancel">
     <slot></slot>
-    <!-- <p style="position: fixed; left: 0;top:0 ;color: #fff;">{{msg}}</p> -->
   </div>
 </template>
 

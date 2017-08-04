@@ -1,6 +1,6 @@
 <template>
   <div class="imageview">
-        <finger
+    <finger
       :singleTap="singleTap"
       :pressMove="pressMove"
       :swipe="swipe">
@@ -16,34 +16,16 @@
             :multipointEnd="multipointEnd"
             :pinch="pinch">
             <loading-img class="imagelist-item-img" 
-            :current="current"
-            :lazySrc="item"
-            :index="$index" 
-            :id="'view'+$index"></loading-img>
+              :current="current"
+              :lazySrc="item"
+              :index="$index" 
+              :id="'view'+$index">
+            </loading-img>
           </finger>
         </li>
       </ul>
     </finger>    
     <p style="position: fixed; left: 0;top:0 ;color: #fff;">{{msg}}</p>
-       <!-- <ul ref="imagelist" class="imagelist"
-        v-touch
-        v-pressMove="{methods:pressMove}"
-        v-swipe="{methods:swipe}">
-        <li 
-          v-for="(item, $index) in imagelist"
-          class="imagelist-item" 
-          :style="'margin-right:' + gap + 'px'" :key="'img'+$index"
-            v-pressMove="{methods:picPressMove}"
-            v-multipointStart="{methods:multipointStart}"
-            v-doubleTap="{methods:doubleTap}"
-            v-pinch="{methods:pinch}"
-            v-multipointEnd="{methods:multipointEnd}">
-            <loading-img class="imagelist-item-img" 
-            :current="current"
-            :lazySrc="item" 
-            :id="'view'+$index"></loading-img>
-        </li>
-      </ul>    -->
   </div>
 </template>
 

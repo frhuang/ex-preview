@@ -8,7 +8,6 @@
 
 <script>
 import Viewer from './viewer/Viewer'
-import PhotoView from './viewer/PhotoView'
 export default {
   data() {
     return {
@@ -31,8 +30,7 @@ export default {
     }
   },
   components: {
-    Viewer,
-    PhotoView
+    Viewer
   }
 }
 </script>
